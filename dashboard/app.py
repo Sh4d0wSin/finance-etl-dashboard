@@ -4,6 +4,8 @@ import pandas as pd
 import streamlit as st
 
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
+API_KEY = os.getenv("API_KEY", "")
+
 
 st.set_page_config(page_title="Finance ETL Dashboard", layout="wide")
 st.title("Finance ETL Dashboard")
@@ -11,13 +13,15 @@ st.caption("Upload a CSV → ingest into Postgres → explore spend summaries.")
 
 # --- helpers ---
 def api_get(path: str, params: dict | None = None):
-    r = requests.get(f"{API_BASE_URL}{path}", params=params, timeout=10)
+    headers = {"X-API-Key": API_KEY} if API_KEY else {}
+    r = requests.get(f"{API_BASE_URL}{path}", params=params, headers = headers, timeout=10)
     r.raise_for_status()
     return r.json()
 
 def api_post_file(path: str, uploaded_file):
+    headers = {"X-API-Key": API_KEY} if API_KEY else {}
     files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "text/csv")}
-    r = requests.post(f"{API_BASE_URL}{path}", files=files, timeout=60)
+    r = requests.post(f"{API_BASE_URL}{path}", files=files, headers = headers, timeout=60)
     r.raise_for_status()
     return r.json()
 
@@ -57,7 +61,8 @@ if st.sidebar.button("Load demo dataset"):
         with open("/data/sample_transactions.csv", "rb") as f:
             content = f.read()
         files = {"file": ("sample_transactions.csv", content, "text/csv")}
-        r = requests.post(f"{API_BASE_URL}/ingest", files=files, timeout=60)
+        headers = {"X-API-Key": API_KEY} if API_KEY else {}
+        r = requests.post(f"{API_BASE_URL}/ingest", files=files, headers=headers, timeout=60)
         r.raise_for_status()
         st.sidebar.success("Demo data ingested ✅")
         st.sidebar.json(r.json())

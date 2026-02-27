@@ -74,7 +74,7 @@ def _strip_and_drop_empty_rows(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
     df = df.copy()
     df.columns = [c.strip().lower() for c in df.columns]
     # strip whitespace in every cell
-    df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+    df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
     # treat empty strings as NA so we can drop truly empty rows
     df = df.replace({"": pd.NA})
     before = len(df)

@@ -80,3 +80,29 @@ def test_ingest_missing_columns(client):
     )
     assert r.status_code == 400
     assert "description" in r.json()["detail"].lower()
+
+
+
+def test_auth_rejects_missing_key(client):
+    """When API_KEY is set, requests without the header get 403."""
+    from app.settings import settings
+    original = settings.api_key
+    settings.api_key = "test-secret"
+    try:
+        r = client.get("/transactions")
+        assert r.status_code == 403
+    finally:
+        settings.api_key = original
+
+
+def test_auth_accepts_valid_key(client):
+    """When API_KEY is set, requests with the correct header get 200."""
+    from app.settings import settings
+    original = settings.api_key
+    settings.api_key = "test-secret"
+    try:
+        r = client.get("/transactions", headers={"X-API-Key": "test-secret"})
+        assert r.status_code == 200
+    finally:
+        settings.api_key = original
+
