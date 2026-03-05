@@ -6,26 +6,26 @@ import streamlit as st
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
 API_KEY = os.getenv("API_KEY", "")
 
-
 st.set_page_config(page_title="Finance ETL Dashboard", layout="wide")
 st.title("Finance ETL Dashboard")
 st.caption("Upload a CSV → ingest into Postgres → explore spend summaries.")
 
-# --- helpers ---
+
 def api_get(path: str, params: dict | None = None):
     headers = {"X-API-Key": API_KEY} if API_KEY else {}
-    r = requests.get(f"{API_BASE_URL}{path}", params=params, headers = headers, timeout=10)
+    r = requests.get(f"{API_BASE_URL}{path}", params=params, headers=headers, timeout=10)
     r.raise_for_status()
     return r.json()
+
 
 def api_post_file(path: str, uploaded_file):
     headers = {"X-API-Key": API_KEY} if API_KEY else {}
     files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "text/csv")}
-    r = requests.post(f"{API_BASE_URL}{path}", files=files, headers = headers, timeout=60)
+    r = requests.post(f"{API_BASE_URL}{path}", files=files, headers=headers, timeout=60)
     r.raise_for_status()
     return r.json()
 
-# --- sidebar ---
+
 st.sidebar.header("Connection")
 st.sidebar.write(f"API: `{API_BASE_URL}`")
 
@@ -52,7 +52,6 @@ if uploaded is not None:
                 st.sidebar.error("Ingest failed ❌")
                 st.sidebar.code(str(e))
 
-
 st.sidebar.divider()
 st.sidebar.header("Demo")
 
@@ -71,8 +70,6 @@ if st.sidebar.button("Load demo dataset"):
         st.sidebar.error("Failed to load demo data ❌")
         st.sidebar.code(str(e))
 
-
-# --- main layout ---
 col1, col2 = st.columns(2)
 
 with col1:
@@ -84,7 +81,6 @@ with col1:
         if df_cat.empty:
             st.info("No data yet. Upload a CSV in the sidebar.")
         else:
-            # Your expenses are negative → show absolute value for nicer charts
             df_cat["total_abs"] = df_cat["total"].abs()
             st.bar_chart(df_cat.set_index("category")["total_abs"])
             st.dataframe(df_cat, use_container_width=True, hide_index=True)
@@ -113,9 +109,7 @@ with col2:
 st.divider()
 st.subheader("Recent transactions")
 
-# --- filters ---
 try:
-    # Get categories from summary endpoint
     by_cat = api_get("/summary/by-category")
     categories = sorted([x["category"] for x in by_cat]) if by_cat else []
 except Exception:
@@ -126,7 +120,6 @@ with st.sidebar.expander("Filters", expanded=False):
     merchant_q = st.text_input("Merchant contains", value="")
     date_range = st.date_input("Date range", value=(), help="Optional")
 
-
 params = {"limit": 200, "offset": 0}
 
 if selected_category != "(all)":
@@ -135,7 +128,6 @@ if selected_category != "(all)":
 if merchant_q.strip():
     params["merchant_contains"] = merchant_q.strip()
 
-# date_range can be () or a single date or a tuple depending on Streamlit version
 if isinstance(date_range, tuple) and len(date_range) == 2:
     params["start_date"] = date_range[0].isoformat()
     params["end_date"] = date_range[1].isoformat()

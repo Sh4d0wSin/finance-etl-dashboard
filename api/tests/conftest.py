@@ -2,11 +2,9 @@ import os
 import sys
 from pathlib import Path
 
-# Ensure imports like `from app.main import app` work whether pytest is run from repo root or /api
 API_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(API_DIR))
 
-# Make Settings() happy at import-time; we override DB anyway.
 os.environ.setdefault("DATABASE_URL", "sqlite+pysqlite://")
 
 import pytest
@@ -22,8 +20,6 @@ from app.models import Base
 
 @pytest.fixture(scope="function")
 def client():
-    """FastAPI TestClient backed by an in-memory SQLite DB (isolated per test)."""
-
     engine = create_engine(
         "sqlite+pysqlite://",
         connect_args={"check_same_thread": False},

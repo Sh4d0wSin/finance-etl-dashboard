@@ -9,7 +9,6 @@ def _post_csv(client, filename: str, csv_text: str):
 
 
 def test_ingest_semicolon_eu_amounts(client):
-    # Test A: semicolon delimiter + EU decimal comma + thousands dot
     csv_text = "date;description;amount\n2026-02-01;Coffee;-2,50\n2026-02-02;Salary;1.234,56\n"
 
     r = _post_csv(client, "test_semicolon_eu.csv", csv_text)
@@ -29,7 +28,6 @@ def test_ingest_semicolon_eu_amounts(client):
 
 
 def test_ingest_debit_credit_derives_amount(client):
-    # Test B: amount derived from credit - debit when 'amount' is missing/blank
     csv_text = (
         "booking date,merchant,debit,credit,currency\n"
         "2026-02-04,ATM Withdrawal,100,,\n"
@@ -54,7 +52,6 @@ def test_ingest_debit_credit_derives_amount(client):
 
 
 def test_ingest_blank_line_and_idempotent_duplicates(client):
-    # Test C: blank line shouldn't break ingest; second ingest should be skipped as duplicate
     csv_text = "date,description,amount\n\n2026-02-03,Groceries,-45.10\n"
 
     r1 = _post_csv(client, "test_comma_blank.csv", csv_text)
